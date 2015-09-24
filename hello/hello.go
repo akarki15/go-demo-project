@@ -4,25 +4,33 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"strings"
+	"strconv"
+	// "strings"
 )
 
-func createMatrix(width int, height int, fileName string) {
+// Creates a matrix of given input size and writes it to a file
+func writeMatrix(width int, height int, fileName string) {
+	fmt.Println("Start")
 	file, err := os.Create(fileName)
 	if err != nil {
 		return
 	}
 	defer file.Close()
-	for i := 0; i < length; i++ {
-		for i := 0; i < height; i++ {
-			file.WriteString(strings.Join(rand.Intn(101), " "))
+	for i := 0; i < height; i++ {
+		numList := ""
+		for j := 0; j < width; j++ {
+			numList += strconv.Itoa(rand.Intn(101)) + " "
 		}
-		file.WriteString("\n")
+		file.WriteString(numList + "\n")
 	}
-	file.WriteString("test")
-	fmt.Println("Success")
+}
+
+func createMatrices(dim int, fileName1, fileName2 string) {
+	go writeMatrix(dim, dim, fileName1)
+	go writeMatrix(dim, dim, fileName2)
+	fmt.Print("Success!")
 }
 
 func main() {
-	createMatrix(10, 10, "testFile.txt")
+	createMatrices(1<<8, "input1", "input2")
 }
