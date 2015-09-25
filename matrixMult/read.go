@@ -28,32 +28,39 @@ func readMatrix(filename string) (Matrix, error) {
 	var mat Matrix
 
 	if scanner.Scan() {
-		// Get all ints as [] string
+		// Get all ints as [] Element
 
-		valList := strings.Split(scanner.Text(), " ")
-		valListLength := len(valList)
-		for i := 0; i < valListLength; i++ {
-			fmt.Println(i, valList[i])
-		}
+		elementList := toElementList(strings.Split(scanner.Text(), " "))
+		elementListLength := len(elementList)
+
 		// declare the capacity of the slice
-		mat = make([][]Element, valListLength)
-		mat[0] = make([]Element, valListLength)
+		mat = make([][]Element, elementListLength)
+		mat[0] = elementList
 
-		for i := 0; i < valListLength; i++ {
-			valInt, err := strconv.Atoi(valList[i])
-			if err != nil {
-				return nil, err
-			}
-			// fmt.Println(i, valListLength, valInt)
-			mat[0][i] = Element{valInt}
+		// loop through the rest
+		count := 1
+		for scanner.Scan() {
+			elementList = toElementList(strings.Split(scanner.Text(), " "))
+			mat[count] = elementList
+			count++
 		}
+		return mat, nil
 	}
 
-	// for scanner.Scan() {
-	// 	if len(m2) == 0{
-
-	// 	}
-	// 	fmt.Println(scanner.Text(), " <<<<<<<<<<<<")
-	// }
 	return nil, nil
+}
+
+func toElementList(stringList []string) []Element {
+
+	elementList := make([]Element, len(stringList))
+
+	for i := 0; i < len(stringList); i++ {
+		val, err := strconv.Atoi(stringList[i])
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		elementList[i] = Element{val}
+	}
+	return elementList
 }

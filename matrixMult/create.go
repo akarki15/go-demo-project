@@ -18,13 +18,13 @@ func writeMatrix(width int, height int, filename string, c chan string) {
 	defer file.Close()
 
 	for i := 0; i < height; i++ {
-		numList := ""
+		elementList := ""
 		for j := 0; j < width-1; j++ {
-			numList += strconv.Itoa(rand.Intn(101)) + " "
+			elementList += strconv.Itoa(rand.Intn(101)) + " "
 		}
 		// last int
-		numList += strconv.Itoa(rand.Intn(101)) + "\n"
-		file.WriteString(numList)
+		elementList += strconv.Itoa(rand.Intn(101)) + "\n"
+		file.WriteString(elementList)
 	}
 	c <- "done"
 }
@@ -58,6 +58,6 @@ func createMatrices(dim int, filename1, filename2 string) {
 }
 
 func main() {
-	createMatrices(10, "input1", "input2")
-	readMatrix("input1")
+	// createMatrices(10, "input1", "input2")
+	fmt.Println(readMatrix("input1"))
 }
