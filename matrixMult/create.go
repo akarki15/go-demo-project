@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
-	"time"
 )
 
 // Creates a matrix of given input size and writes it to a file
@@ -37,28 +36,13 @@ func createMatrices(dim int, filename1, filename2 string) {
 	go writeMatrix(dim, dim, filename1, c1)
 	go writeMatrix(dim, dim, filename2, c2)
 
-	go func() {
-		for {
-			select {
-			case <-c1:
-				fmt.Println("Done with", filename1)
-			case <-c2:
-				fmt.Println("Done with", filename2)
-			default:
-				fmt.Print(".")
-				time.Sleep(time.Second * 3)
-			}
-		}
-	}()
-
-	var input string
-	fmt.Scanln(&input)
-
-	fmt.Print("Stopped!")
+	<-c1
+	<-c2
+	fmt.Print("Finished!")
 }
 
 func main() {
-	// createMatrices(4, "input1", "input2")
+	// createMatrices(1<<10, "input1", "input2")
 	// mat1, err := readSubMatrix("input1", 2, 0, 2)
 	// mat2, err := readSubMatrix("input2", 0, 0, 16)
 
@@ -71,20 +55,43 @@ func main() {
 }
 
 func parallelMultiply(filename1, filename2 string, dim int) {
-	m := make(map[string]Matrix)
+	fmt.Println(dim)
 
-	// read up parts of first multiplicand matrix
-	for name, filename := range map[string]string{"a": filename1, "b": filename2} {
-		var err error
-		m[name+"11"], err = readSubMatrix(filename, 0, 0, dim/2)
-		m[name+"12"], err = readSubMatrix(filename, 0, dim/2, dim/2)
-		m[name+"21"], err = readSubMatrix(filename, dim/2, 0, dim/2)
-		m[name+"22"], err = readSubMatrix(filename, dim/2, dim/2, dim/2)
-		if err != nil {
-			fmt.Println(err)
+	m1 := [2][2]chan Matrix{}
+	m2 := [2][2]chan Matrix{}
+
+	// initialize
+	for i := 0; i < dim/2; i++ {
+		for j := 0; j < dim/2; j++ {
+			m1[i][j] = make(chan Matrix)
+			m2[i][j] = make(chan Matrix)
 		}
 	}
-	for i, v := range m {
-		fmt.Println(i, v)
+
+	go readSubMatrix(filename1, 0, 0, dim/2, m1[0][0])
+	// go readSubMatrix(filename1, 0, dim/1, dim/2, m1[0][1])
+
+	fmt.Println("Test")
+	temp := <-m1[0][0]
+	fmt.Println("Test1")
+	fmt.Println(temp)
+
+	// read up parts of first multiplicand matrix
+
+	go readSubMatrix(filename1, 0, 0, dim/2, m1[0][0])
+	go readSubMatrix(filename1, 0, dim/2, dim/2, m1[0][1])
+	go readSubMatrix(filename1, dim/2, 0, dim/2, m1[1][0])
+	go readSubMatrix(filename1, dim/2, dim/2, dim/2, m1[1][1])
+
+	go readSubMatrix(filename2, 0, 0, dim/2, m2[0][0])
+	go readSubMatrix(filename2, 0, dim/2, dim/2, m2[0][1])
+	go readSubMatrix(filename2, dim/2, 0, dim/2, m2[1][0])
+	go readSubMatrix(filename2, dim/2, dim/2, dim/2, m2[1][1])
+
+	for i := 0; i < dim/2; i++ {
+		for j := 0; j < dim/2; j++ {
+			fmt.Println(<-m1[i][j])
+			fmt.Println(<-m2[i][j])
+		}
 	}
 }

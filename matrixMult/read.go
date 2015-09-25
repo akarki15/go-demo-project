@@ -18,10 +18,11 @@ type Matrix [][]Element
 // intermediateLen. For example if the matrix is of dimenstion 2*2 then, readSubMatrix
 // (filename, 2, 2, 2) returns the bottom right quadrant
 
-func readSubMatrix(filename string, row, col, intermediateLen int) (Matrix, error) {
+func readSubMatrix(filename string, row, col, intermediateLen int, c chan Matrix) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		fmt.Println(err)
+		return
 	}
 	defer file.Close()
 
@@ -41,7 +42,9 @@ func readSubMatrix(filename string, row, col, intermediateLen int) (Matrix, erro
 		mat[count] = elementList
 		count++
 	}
-	return mat, nil
+	fmt.Println("Sending", mat)
+	c <- mat
+
 }
 
 // takes a list of nums of string type and returns a corresponding list of elements
