@@ -38,7 +38,6 @@ func readSubMatrix(filename string, row, col, intermediateLen int) (Matrix, erro
 	for scanner.Scan() && count < intermediateLen {
 		// get record [col:col+intermediateLen-1]
 		elementList := toElementList(strings.Split(scanner.Text(), " ")[col : col+intermediateLen])
-		fmt.Println(elementList)
 		mat[count] = elementList
 		count++
 	}

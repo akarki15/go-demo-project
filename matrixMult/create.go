@@ -59,13 +59,32 @@ func createMatrices(dim int, filename1, filename2 string) {
 
 func main() {
 	// createMatrices(4, "input1", "input2")
-	mat1, err := readSubMatrix("input1", 2, 0, 2)
+	// mat1, err := readSubMatrix("input1", 2, 0, 2)
 	// mat2, err := readSubMatrix("input2", 0, 0, 16)
 
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println(mat1)
-	}
-
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	fmt.Println(mat1)
+	// }
+	parallelMultiply("input1", "input2", 4)
 	// fmt.Println(multiply(mat1, mat2))
+}
+
+func parallelMultiply(filename1, filename2 string, dim int) {
+	m := make(map[string]Matrix)
+
+	// read up parts of first multiplicand matrix
+	for name, filename := range map[string]string{"a": filename1, "b": filename2} {
+		var err error
+		m[name+"11"], err = readSubMatrix(filename, 0, 0, dim/2)
+		m[name+"12"], err = readSubMatrix(filename, 0, dim/2, dim/2)
+		m[name+"21"], err = readSubMatrix(filename, dim/2, 0, dim/2)
+		m[name+"22"], err = readSubMatrix(filename, dim/2, dim/2, dim/2)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	for i, v := range m {
+		fmt.Println(i, v)
+	}
 }
