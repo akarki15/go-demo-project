@@ -9,9 +9,9 @@ import (
 )
 
 // Creates a matrix of given input size and writes it to a file
-func writeMatrix(width int, height int, fileName string, c chan string) {
-	fmt.Println("Creating", fileName)
-	file, err := os.Create(fileName)
+func writeMatrix(width int, height int, filename string, c chan string) {
+	fmt.Println("Creating", filename)
+	file, err := os.Create(filename)
 	if err != nil {
 		return
 	}
@@ -19,29 +19,31 @@ func writeMatrix(width int, height int, fileName string, c chan string) {
 
 	for i := 0; i < height; i++ {
 		numList := ""
-		for j := 0; j < width; j++ {
+		for j := 0; j < width-1; j++ {
 			numList += strconv.Itoa(rand.Intn(101)) + " "
 		}
-		file.WriteString(numList + "\n")
+		// last int
+		numList += strconv.Itoa(rand.Intn(101)) + "\n"
+		file.WriteString(numList)
 	}
 	c <- "done"
 }
 
 // Spawns two goroutines to create the two input files
-func createMatrices(dim int, fileName1, fileName2 string) {
+func createMatrices(dim int, filename1, filename2 string) {
 	c1 := make(chan string)
 	c2 := make(chan string)
 
-	go writeMatrix(dim, dim, fileName1, c1)
-	go writeMatrix(dim, dim, fileName2, c2)
+	go writeMatrix(dim, dim, filename1, c1)
+	go writeMatrix(dim, dim, filename2, c2)
 
 	go func() {
 		for {
 			select {
 			case <-c1:
-				fmt.Println("Done with", fileName1)
+				fmt.Println("Done with", filename1)
 			case <-c2:
-				fmt.Println("Done with", fileName2)
+				fmt.Println("Done with", filename2)
 			default:
 				fmt.Print(".")
 				time.Sleep(time.Second * 3)
@@ -56,5 +58,6 @@ func createMatrices(dim int, fileName1, fileName2 string) {
 }
 
 func main() {
-	createMatrices(1<<10, "input1", "input2")
+	createMatrices(10, "input1", "input2")
+	readMatrix("input1")
 }
