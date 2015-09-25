@@ -14,8 +14,11 @@ type Element struct {
 
 type Matrix [][]Element
 
-// readMatrix reads a file and returns corresponding Matrix
-func readMatrix(filename string) (Matrix, error) {
+// readMatrix reads a matrix file and returns matrix corresponding to the row, col and
+// intermediateLen. For example if the matrix is of dimenstion 2*2 then, readSubMatrix
+// (filename, 2, 2, 2) returns the bottom right quadrant
+
+func readSubMatrix(filename string, row, col, intermediateLen int) (Matrix, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -24,33 +27,25 @@ func readMatrix(filename string) (Matrix, error) {
 
 	scanner := bufio.NewScanner(file)
 
-	// Find the size of each row and declare the Matrix accordingly
-	var mat Matrix
+	var mat Matrix = make([][]Element, intermediateLen)
 
-	if scanner.Scan() {
-		// Get all ints as [] Element
-
-		elementList := toElementList(strings.Split(scanner.Text(), " "))
-		elementListLength := len(elementList)
-
-		// declare the capacity of the slice
-		mat = make([][]Element, elementListLength)
-
-		mat[0] = elementList
-
-		// loop through the rest
-		count := 1
-		for scanner.Scan() {
-			elementList = toElementList(strings.Split(scanner.Text(), " "))
-			mat[count] = elementList
-			count++
-		}
-		return mat, nil
+	// ignore first 0 to row-1 records
+	for i := 0; i < row; i++ {
+		scanner.Scan()
 	}
 
-	return nil, nil
+	count := 0
+	for scanner.Scan() && count < intermediateLen {
+		// get record [col:col+intermediateLen-1]
+		elementList := toElementList(strings.Split(scanner.Text(), " ")[col : col+intermediateLen])
+		fmt.Println(elementList)
+		mat[count] = elementList
+		count++
+	}
+	return mat, nil
 }
 
+// takes a list of nums of string type and returns a corresponding list of elements
 func toElementList(stringList []string) []Element {
 
 	elementList := make([]Element, len(stringList))
