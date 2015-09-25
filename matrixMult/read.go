@@ -14,7 +14,7 @@ type Element struct {
 
 type Matrix [][]Element
 
-// readMatrix reads a file and returns a corresponding Matrix
+// readMatrix reads a file and returns corresponding Matrix
 func readMatrix(filename string) (Matrix, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -35,6 +35,7 @@ func readMatrix(filename string) (Matrix, error) {
 
 		// declare the capacity of the slice
 		mat = make([][]Element, elementListLength)
+
 		mat[0] = elementList
 
 		// loop through the rest

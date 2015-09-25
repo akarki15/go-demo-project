@@ -58,6 +58,11 @@ func createMatrices(dim int, filename1, filename2 string) {
 }
 
 func main() {
-	// createMatrices(10, "input1", "input2")
-	fmt.Println(readMatrix("input1"))
+	createMatrices(2, "input1", "input2")
+	mat1, err := readMatrix("input1")
+	mat2, err := readMatrix("input2")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(multiply(mat1, mat2))
 }
