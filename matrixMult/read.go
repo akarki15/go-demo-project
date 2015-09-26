@@ -8,12 +8,6 @@ import (
 	"strings"
 )
 
-type Element struct {
-	Val int
-}
-
-type Matrix [][]Element
-
 // readMatrix reads a matrix file and returns matrix corresponding to the row, col and
 // intermediateLen. For example if the matrix is of dimenstion 2*2 then, readSubMatrix
 // (filename, 2, 2, 2) returns the bottom right quadrant
