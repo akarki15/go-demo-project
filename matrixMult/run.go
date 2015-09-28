@@ -93,12 +93,13 @@ func parallelMultiply(filename1, filename2 string, dim int) {
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 2; j++ {
 			for k := 0; k < 2; k++ {
-
+				var dest Matrix
 				if alt {
-					go multiply(m1Mat[i][k], m2Mat[k][j], product1[i][j])
+					dest = product1
 				} else {
-					go multiply(m1Mat[i][k], m2Mat[k][j], product2[i][j])
+					dest = product2
 				}
+				go multiply(m1Mat[i][k], m2Mat[k][j], dest[i][j])
 				alt = !alt
 			}
 		}
