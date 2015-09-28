@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -10,16 +11,29 @@ type Element struct {
 
 type Matrix [][]Element
 
-func main() {
-	dim := 2
-	createMatrices(dim, "input1", "input2")
-	// mat1, err := readSubMatrix("input1", 2, 0, 2)
-	// mat2, err := readSubMatrix("input2", 0, 0, 16)
+func (m1 Matrix) IsEqual(m2 Matrix) bool {
+	if len(m1[0]) != len(m2[0]) {
+		fmt.Println(errors.New("Can't compare matrices of different sizes."))
+		return false
+	}
 
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	fmt.Println(mat1)
-	// }
+	eq := true
+	for i := 0; i < len(m1); i++ {
+		for j := 0; j < len(m1[0]); j++ {
+			eq = eq && m1[i][j] == m2[i][j]
+		}
+	}
+	return eq
+}
+
+func main() {
+	var dim int
+	_, err := fmt.Scanf("%d", &dim)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	createMatrices(dim, "input1", "input2")
 	parallelMultiply("input1", "input2", dim)
 
 }
@@ -55,7 +69,6 @@ func parallelMultiply(filename1, filename2 string, dim int) {
 	}
 
 	// read up parts of first multiplicand matrix
-
 	go readSubMatrix(filename1, 0, 0, dim/2, m1[0][0])
 	go readSubMatrix(filename1, 0, dim/2, dim/2, m1[0][1])
 	go readSubMatrix(filename1, dim/2, 0, dim/2, m1[1][0])
@@ -75,12 +88,11 @@ func parallelMultiply(filename1, filename2 string, dim int) {
 		}
 	}
 
-	// Multiply the quadrants
+	// multiply the quadrants
 	alt := true
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 2; j++ {
 			for k := 0; k < 2; k++ {
-				fmt.Println(i, k, "  *  ", k, j, " -> ", i, j, alt)
 
 				if alt {
 					go multiply(m1Mat[i][k], m2Mat[k][j], product1[i][j])
