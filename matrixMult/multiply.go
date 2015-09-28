@@ -1,14 +1,10 @@
 package main
 
-import (
-// "fmt"
-)
-
 // multiply takes in two matrices and returns their product
-func multiply(mat1, mat2 Matrix, c chan Matrix) {
+func multiply(mat1, mat2 Matrix, c chan Matrix) Matrix {
 	dim := len(mat1[0])
 	if dim == 0 {
-		return
+		return nil
 	}
 
 	product := make([][]Element, dim)
@@ -24,4 +20,5 @@ func multiply(mat1, mat2 Matrix, c chan Matrix) {
 		}
 	}
 	c <- product
+	return product
 }

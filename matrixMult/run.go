@@ -26,20 +26,31 @@ func main() {
 
 func parallelMultiply(filename1, filename2 string, dim int) {
 	fmt.Println(dim)
-
+	// channels to store input quadrants
 	m1 := [2][2]chan Matrix{}
 	m2 := [2][2]chan Matrix{}
 
+	// store input quadrants
+	m1Mat := [2][2]Matrix{}
+	m2Mat := [2][2]Matrix{}
+
+	// channels to store products
 	product1 := [2][2]chan Matrix{}
 	product2 := [2][2]chan Matrix{}
 
+	// channels to store sum
+	sum := [2][2]chan Matrix{}
+
 	// initialize
-	for i := 0; i < dim/2; i++ {
-		for j := 0; j < dim/2; j++ {
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 2; j++ {
 			m1[i][j] = make(chan Matrix)
 			m2[i][j] = make(chan Matrix)
+
 			product1[i][j] = make(chan Matrix)
 			product2[i][j] = make(chan Matrix)
+
+			sum[i][j] = make(chan Matrix)
 		}
 	}
 
@@ -56,46 +67,37 @@ func parallelMultiply(filename1, filename2 string, dim int) {
 	go readSubMatrix(filename2, dim/2, 0, dim/2, m2[1][0])
 	go readSubMatrix(filename2, dim/2, dim/2, dim/2, m2[1][1])
 
-	// for i := 0; i < 2; i++ {
-	// 	for j := 0; j < 2; j++ {
-	// 		fmt.Println(<-m1[i][j], <-m2[i][j])
-	// 	}
-	// }
+	// store the received input matrix channel data
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 2; j++ {
+			m1Mat[i][j] = <-m1[i][j]
+			m2Mat[i][j] = <-m2[i][j]
+		}
+	}
 
-	// Multiply parts
+	// Multiply the quadrants
 	alt := true
-
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 2; j++ {
 			for k := 0; k < 2; k++ {
 				fmt.Println(i, k, "  *  ", k, j, " -> ", i, j, alt)
-				fmt.Println(i, k, <-m1[i][k], <-m2[k][j], k, j)
-				// // if alt {
-				// // 	go multiply(<-m1[i][k], <-m2[k][j], product1[i][j])
-				// // } else {
-				// // 	go multiply(<-m1[i][k], <-m2[k][j], product2[i][j])
-				// // }
-				// alt = !alt
+
+				if alt {
+					go multiply(m1Mat[i][k], m2Mat[k][j], product1[i][j])
+				} else {
+					go multiply(m1Mat[i][k], m2Mat[k][j], product2[i][j])
+				}
+				alt = !alt
 			}
 		}
 	}
 
-	// fmt.Println("TEST")
-	// for i := 0; i < 2; i++ {
-	// 	for j := 0; j < 2; j++ {
-	// 		fmt.Println(<-product1[i][j])
-	// 		fmt.Println(<-product2[i][j])
-	// 	}
-	// }
+	// add the products to get each quadrant of the final result sum
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 2; j++ {
+			go add(<-product1[i][j], <-product2[i][j], sum[i][j])
+			fmt.Println("Quadrant", i, j, <-sum[i][j])
+		}
+	}
 
-	// go multiply(<-m1[0][0], <-m2[0][0], product1[0][0])
-
-	// fmt.Println(<-product[0][0])
-
-	// for i := 0; i < dim/2; i++ {
-	// 	for j := 0; j < dim/2; j++ {
-	// 		fmt.Println(<-m1[i][j])
-	// 		fmt.Println(<-m2[i][j])
-	// 	}
-	// }
 }

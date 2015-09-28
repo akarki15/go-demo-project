@@ -36,6 +36,7 @@ func readSubMatrix(filename string, row, col, intermediateLen int, c chan Matrix
 		mat[count] = elementList
 		count++
 	}
+	// fmt.Println("Sending", mat)
 	c <- mat
 
 }
