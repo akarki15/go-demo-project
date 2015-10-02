@@ -9,7 +9,10 @@ type Element struct {
 	Val int
 }
 
-type Matrix [][]Element
+type Matrix struct {
+	Val  [][]Element
+	i, j int
+}
 
 func (m1 Matrix) IsEqual(m2 Matrix) bool {
 	if len(m1[0]) != len(m2[0]) {
@@ -93,7 +96,7 @@ func parallelMultiply(filename1, filename2 string, dim int) {
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 2; j++ {
 			for k := 0; k < 2; k++ {
-				var dest Matrix
+				var dest [][]chan Matrix
 				if alt {
 					dest = product1
 				} else {
