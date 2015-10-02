@@ -1,18 +1,25 @@
 package main
 
-// // add takes in two matrices and returns their sum
-// func add(mat1, mat2 Matrix, c chan Matrix) {
-// 	dim := len(mat1[0])
-// 	if dim == 0 {
-// 		return
-// 	}
+import (
+	"fmt"
+)
 
-// 	sum := make([][]Element, dim)
-// 	for i := 0; i < dim; i++ {
-// 		sum[i] = make([]Element, dim)
-// 		for j := 0; j < dim; j++ {
-// 			sum[i][j] = Element{mat1[i][j].Val + mat2[i][j].Val}
-// 		}
-// 	}
-// 	c <- sum
-// }
+// add takes in two matrices and returns their sum
+func add(mat1, mat2 Matrix, c chan Matrix) {
+	dim1, dim2 := len(mat1.Val[0]), len(mat2.Val[0])
+	if dim1 != dim2 {
+		c <- Matrix{e: fmt.Errorf("Cannot add matrices of varying lengths: %v != %v", dim1, dim2)}
+	} else if dim1 == 0 {
+		c <- Matrix{e: fmt.Errorf("Empty matrices.")}
+	}
+
+	sum := make([][]Element, dim1)
+	for i := 0; i < dim1; i++ {
+		sum[i] = make([]Element, dim1)
+		for j := 0; j < dim1; j++ {
+			sum[i][j] = Element{mat1.Val[i][j].Val + mat2.Val[i][j].Val}
+		}
+	}
+	fmt.Println("sending", sum)
+	c <- Matrix{Val: sum}
+}

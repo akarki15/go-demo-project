@@ -23,7 +23,7 @@ func readSubMatrix(filename string, row, col, intermediateLen int, c chan Matrix
 
 	scanner := bufio.NewScanner(file)
 
-	mat := Matrix{Val: make([][]Element, intermediateLen)}
+	mat := Matrix{Val: make([][]Element, intermediateLen), i: (row / intermediateLen), j: (col / intermediateLen)}
 
 	// ignore first 0 to row-1 records
 	for i := 0; i < row; i++ {
