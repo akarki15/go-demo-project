@@ -3,6 +3,7 @@ package main
 import (
 	// "errors"
 	"fmt"
+	"strconv"
 )
 
 type Element struct {
@@ -13,6 +14,17 @@ type Matrix struct {
 	Val  [][]Element
 	e    error
 	i, j int
+}
+
+func (m Matrix) String() string {
+	st := "\n"
+	for i := 0; i < len(m.Val[0]); i++ {
+		for j := 0; j < len(m.Val[0]); j++ {
+			st = st + " " + strconv.Itoa(m.Val[i][j].Val)
+		}
+		st = st + "\n"
+	}
+	return st
 }
 
 // func (m1 Matrix) IsEqual(m2 Matrix) bool {
@@ -41,9 +53,18 @@ func main() {
 
 	createMatrices(dim, "input1", "input2")
 	c := make(chan Matrix)
+	d := make(chan Matrix)
+
 	go readSubMatrix("input1", 0, 0, dim, c)
-	fmt.Println("Got back")
-	fmt.Println(<-c)
+	go readSubMatrix("input2", 0, 0, dim, c)
+	go multiply(<-c, <-c, d)
+	prod := <-d
+	if prod.e != nil {
+		fmt.Println(prod.e)
+	} else {
+		fmt.Println(prod)
+	}
+
 	// parallelMultiply("input1", "input2", dim)
 
 }
