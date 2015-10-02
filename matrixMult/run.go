@@ -27,20 +27,20 @@ func (m Matrix) String() string {
 	return st
 }
 
-// func (m1 Matrix) IsEqual(m2 Matrix) bool {
-// 	if len(m1[0]) != len(m2[0]) {
-// 		fmt.Println(errors.New("Can't compare matrices of different sizes."))
-// 		return false
-// 	}
+func (m1 Matrix) IsEqual(m2 Matrix) (bool, error) {
+	dim1, dim2 := len(m1.Val[0]), len(m2.Val[0])
+	if dim1 != dim2 {
+		return false, fmt.Errorf("Cannot multiply matrices of varying lengths: %v != %v", dim1, dim2)
+	}
 
-// 	eq := true
-// 	for i := 0; i < len(m1); i++ {
-// 		for j := 0; j < len(m1[0]); j++ {
-// 			eq = eq && m1[i][j] == m2[i][j]
-// 		}
-// 	}
-// 	return eq
-// }
+	eq := true
+	for i := 0; i < dim1; i++ {
+		for j := 0; j < dim2; j++ {
+			eq = eq && m1.Val[i][j] == m2.Val[i][j]
+		}
+	}
+	return eq, nil
+}
 
 func main() {
 
