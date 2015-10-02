@@ -20,6 +20,5 @@ func add(mat1, mat2 Matrix, c chan Matrix) {
 			sum[i][j] = Element{mat1.Val[i][j].Val + mat2.Val[i][j].Val}
 		}
 	}
-	fmt.Println("sending", sum)
 	c <- Matrix{Val: sum}
 }

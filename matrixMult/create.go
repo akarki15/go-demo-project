@@ -19,10 +19,10 @@ func writeMatrix(width int, height int, filename string, c chan string) {
 	for i := 0; i < height; i++ {
 		elementList := ""
 		for j := 0; j < width-1; j++ {
-			elementList += strconv.Itoa(rand.Intn(101)) + " "
+			elementList += strconv.Itoa(rand.Intn(11)) + " "
 		}
 		// last int
-		elementList += strconv.Itoa(rand.Intn(101)) + "\n"
+		elementList += strconv.Itoa(rand.Intn(11)) + "\n"
 		file.WriteString(elementList)
 	}
 	c <- "done"

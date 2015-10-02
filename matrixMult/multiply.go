@@ -5,7 +5,7 @@ import (
 )
 
 // multiply takes in two matrices and returns their product
-func multiply(mat1, mat2 Matrix, c chan Matrix) {
+func multiply(mat1, mat2 Matrix, c chan Matrix, i, j, a, b int) {
 	dim1, dim2 := len(mat1.Val[0]), len(mat2.Val[0])
 	if dim1 != dim2 {
 		c <- Matrix{e: fmt.Errorf("Cannot multiply matrices of varying lengths: %v != %v", dim1, dim2)}
@@ -26,5 +26,5 @@ func multiply(mat1, mat2 Matrix, c chan Matrix) {
 		}
 	}
 
-	c <- Matrix{Val: product}
+	c <- Matrix{product, nil, i, j, a, b}
 }
