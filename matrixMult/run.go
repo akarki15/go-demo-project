@@ -1,91 +1,97 @@
 package main
 
 import (
-	"errors"
+	// "errors"
 	"fmt"
+	"strconv"
 )
 
 type Element struct {
 	Val int
 }
 
-type Matrix [][]Element
+type Matrix struct {
+	Val [][]Element
+	e   error
 
-func (m1 Matrix) IsEqual(m2 Matrix) bool {
-	if len(m1[0]) != len(m2[0]) {
-		fmt.Println(errors.New("Can't compare matrices of different sizes."))
-		return false
+	// store metadata when used for multiplication and reading
+	i, j int
+	a, b int
+}
+
+func (m Matrix) String() string {
+	st := "\n"
+	if m.Val != nil {
+		for i := 0; i < len(m.Val[0]); i++ {
+			for j := 0; j < len(m.Val[0]); j++ {
+				st = st + " " + strconv.Itoa(m.Val[i][j].Val)
+			}
+			st = st + "\n"
+		}
+	}
+	return st
+}
+
+func (m1 Matrix) IsEqual(m2 Matrix) (bool, error) {
+	dim1, dim2 := len(m1.Val[0]), len(m2.Val[0])
+
+	if dim1 != dim2 {
+		return false, fmt.Errorf("Cannot multiply matrices of varying lengths: %v != %v", dim1, dim2)
 	}
 
 	eq := true
-	for i := 0; i < len(m1); i++ {
-		for j := 0; j < len(m1[0]); j++ {
-			eq = eq && m1[i][j] == m2[i][j]
+	for i := 0; i < dim1; i++ {
+		for j := 0; j < dim2; j++ {
+			eq = eq && m1.Val[i][j] == m2.Val[i][j]
 		}
 	}
-	return eq
+	return eq, nil
 }
 
 func main() {
+
 	var dim int
 	_, err := fmt.Scanf("%d", &dim)
+
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	createMatrices(dim, "input1", "input2")
-	parallelMultiply("input1", "input2", dim)
+
+	if err := createMatrices(dim, "input1", "input2"); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err := parallelMultiply("input1", "input2", dim); err != nil {
+		fmt.Println(err)
+		return
+	}
 
 }
 
-func parallelMultiply(filename1, filename2 string, dim int) {
-	fmt.Println(dim)
-	// channels to store input quadrants
-	m1 := [2][2]chan Matrix{}
-	m2 := [2][2]chan Matrix{}
+func parallelMultiply(filename1, filename2 string, dim int) error {
+
+	// channels to store temp data
+	c1, c2 := make(chan Matrix), make(chan Matrix)
 
 	// store input quadrants
-	m1Mat := [2][2]Matrix{}
-	m2Mat := [2][2]Matrix{}
+	input1 := [2][2]Matrix{}
+	input2 := [2][2]Matrix{}
 
-	// channels to store products
-	product1 := [2][2]chan Matrix{}
-	product2 := [2][2]chan Matrix{}
-
-	// channels to store sum
-	sum := [2][2]chan Matrix{}
-
-	// initialize
+	// read up parts of first multiplicand matrix
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 2; j++ {
-			m1[i][j] = make(chan Matrix)
-			m2[i][j] = make(chan Matrix)
-
-			product1[i][j] = make(chan Matrix)
-			product2[i][j] = make(chan Matrix)
-
-			sum[i][j] = make(chan Matrix)
+			actualI, actualJ := (i * dim / 2), (j * dim / 2)
+			go readSubMatrix(filename1, actualI, actualJ, dim/2, c1)
+			go readSubMatrix(filename2, actualI, actualJ, dim/2, c2)
 		}
 	}
 
-	// read up parts of first multiplicand matrix
-	go readSubMatrix(filename1, 0, 0, dim/2, m1[0][0])
-	go readSubMatrix(filename1, 0, dim/2, dim/2, m1[0][1])
-	go readSubMatrix(filename1, dim/2, 0, dim/2, m1[1][0])
-	go readSubMatrix(filename1, dim/2, dim/2, dim/2, m1[1][1])
-
-	// read up parts of second multiplicand
-	go readSubMatrix(filename2, 0, 0, dim/2, m2[0][0])
-	go readSubMatrix(filename2, 0, dim/2, dim/2, m2[0][1])
-	go readSubMatrix(filename2, dim/2, 0, dim/2, m2[1][0])
-	go readSubMatrix(filename2, dim/2, dim/2, dim/2, m2[1][1])
-
-	// store the received input matrix channel data
-	for i := 0; i < 2; i++ {
-		for j := 0; j < 2; j++ {
-			m1Mat[i][j] = <-m1[i][j]
-			m2Mat[i][j] = <-m2[i][j]
-		}
+	// store input data since we are going to reuse some of them
+	for i := 0; i < 4; i++ {
+		temp1, temp2 := <-c1, <-c2
+		input1[temp1.i][temp1.j], input2[temp2.i][temp2.j] = temp1, temp2
 	}
 
 	// multiply the quadrants
@@ -93,23 +99,32 @@ func parallelMultiply(filename1, filename2 string, dim int) {
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 2; j++ {
 			for k := 0; k < 2; k++ {
-
+				var c chan Matrix
 				if alt {
-					go multiply(m1Mat[i][k], m2Mat[k][j], product1[i][j])
+					c = c1
 				} else {
-					go multiply(m1Mat[i][k], m2Mat[k][j], product2[i][j])
+					c = c2
 				}
+				go multiply(input1[i][k], input2[k][j], c, i, k, k, j)
 				alt = !alt
 			}
 		}
 	}
 
+	// store the products
+	p1, p2 := [2][2]Matrix{}, [2][2]Matrix{}
+	for i := 0; i < 4; i++ {
+		temp1, temp2 := <-c1, <-c2
+		p1[temp1.i][temp1.b] = temp1
+		p2[temp2.i][temp2.b] = temp2
+	}
+
 	// add the products to get each quadrant of the final result sum
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 2; j++ {
-			go add(<-product1[i][j], <-product2[i][j], sum[i][j])
-			fmt.Println("Quadrant", i, j, <-sum[i][j])
+			go add(p1[i][j], p2[i][j], c1)
+			fmt.Println("Quadrant", i, j, <-c1)
 		}
 	}
-
+	return nil
 }
