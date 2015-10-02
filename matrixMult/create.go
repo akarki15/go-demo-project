@@ -8,11 +8,11 @@ import (
 )
 
 // Creates a matrix of given input size and writes it to a file
-func writeMatrix(width int, height int, filename string, c chan string) {
+func writeMatrix(width int, height int, filename string, c chan error) {
 	fmt.Println("Creating", filename)
 	file, err := os.Create(filename)
 	if err != nil {
-		return
+		c <- err
 	}
 	defer file.Close()
 
@@ -25,18 +25,28 @@ func writeMatrix(width int, height int, filename string, c chan string) {
 		elementList += strconv.Itoa(rand.Intn(11)) + "\n"
 		file.WriteString(elementList)
 	}
-	c <- "done"
+	c <- nil
 }
 
 // Spawns two goroutines to create the two input files
-func createMatrices(dim int, filename1, filename2 string) {
-	c1 := make(chan string)
-	c2 := make(chan string)
+func createMatrices(dim int, filename1, filename2 string) error {
+	c := make(chan error)
 
-	go writeMatrix(dim, dim, filename1, c1)
-	go writeMatrix(dim, dim, filename2, c2)
+	go writeMatrix(dim, dim, filename1, c)
+	go writeMatrix(dim, dim, filename2, c)
 
-	<-c1
-	<-c2
-	fmt.Print("Finished!")
+	err1, err2 := <-c, <-c
+
+	if err1 == nil && err2 == nil {
+		return nil
+	}
+
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+
+	if err2 != nil {
+		fmt.Println(err2)
+	}
+	return fmt.Errorf("Problem creating matrix.")
 }

@@ -52,32 +52,25 @@ func main() {
 
 	var dim int
 	_, err := fmt.Scanf("%d", &dim)
+
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	createMatrices(dim, "input1", "input2")
+	if err := createMatrices(dim, "input1", "input2"); err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	// c := make(chan Matrix)
-	// d := make(chan Matrix)
-
-	// go readSubMatrix("input1", 0, 0, dim, c)
-	// go readSubMatrix("input2", 0, 0, dim, c)
-	// go multiply(<-c, <-c, d)
-	// prod := <-d
-	// if prod.e != nil {
-	// 	fmt.Println(prod.e)
-	// } else {
-	// 	go add(prod, prod, d)
-	// 	fmt.Println(<-d)
-	// }
-
-	parallelMultiply("input1", "input2", dim, false)
+	if err := parallelMultiply("input1", "input2", dim); err != nil {
+		fmt.Println(err)
+		return
+	}
 
 }
 
-func parallelMultiply(filename1, filename2 string, dim int, output bool) {
+func parallelMultiply(filename1, filename2 string, dim int) error {
 
 	// channels to store temp data
 	c1, c2 := make(chan Matrix), make(chan Matrix)
@@ -124,16 +117,14 @@ func parallelMultiply(filename1, filename2 string, dim int, output bool) {
 		temp1, temp2 := <-c1, <-c2
 		p1[temp1.i][temp1.b] = temp1
 		p2[temp2.i][temp2.b] = temp2
-		// fmt.Println(temp1)
 	}
 
 	// add the products to get each quadrant of the final result sum
-
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 2; j++ {
 			go add(p1[i][j], p2[i][j], c1)
 			fmt.Println("Quadrant", i, j, <-c1)
 		}
 	}
-
+	return nil
 }
