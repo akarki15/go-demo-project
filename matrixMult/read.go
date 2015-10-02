@@ -14,15 +14,16 @@ import (
 
 func readSubMatrix(filename string, row, col, intermediateLen int, c chan Matrix) {
 	file, err := os.Open(filename)
+
 	if err != nil {
-		fmt.Println(err)
-		return
+		c <- Matrix{e: err}
 	}
+
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 
-	var mat Matrix = make([][]Element, intermediateLen)
+	mat := Matrix{Val: make([][]Element, intermediateLen)}
 
 	// ignore first 0 to row-1 records
 	for i := 0; i < row; i++ {
@@ -33,7 +34,7 @@ func readSubMatrix(filename string, row, col, intermediateLen int, c chan Matrix
 	for scanner.Scan() && count < intermediateLen {
 		// get record [col:col+intermediateLen-1]
 		elementList := toElementList(strings.Split(scanner.Text(), " ")[col : col+intermediateLen])
-		mat[count] = elementList
+		mat.Val[count] = elementList
 		count++
 	}
 	// fmt.Println("Sending", mat)
